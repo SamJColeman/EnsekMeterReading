@@ -8,6 +8,6 @@ namespace EnsekMeterReading.Data.Interfaces
 
         Task<bool> MeterReadingExists(int accountId, DateTime meterReadingDateTime);
 
-        Task AddMeterReading(MeterReading meterReading);
+        Task AddMeterReadings(List<MeterReading> meterReadings);
     }
 }

@@ -13,9 +13,9 @@ namespace EnsekMeterReading.Data
             this.context = context;
         }
 
-        public async Task AddMeterReading(MeterReading meterReading)
+        public async Task AddMeterReadings(List<MeterReading> meterReadings)
         {
-            this.context.MeterReadings.Add(meterReading);
+            this.context.MeterReadings.AddRange(meterReadings);
             await this.context.SaveChangesAsync();
         }
 

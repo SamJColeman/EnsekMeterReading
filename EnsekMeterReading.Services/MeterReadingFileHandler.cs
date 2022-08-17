@@ -19,14 +19,14 @@ namespace EnsekMeterReading.Services
 
         public async Task<MeterReadingResponse> Handle(MeterReadingFileRequest request, CancellationToken cancellationToken)
         {
-            await this.ParseFile(request);
+            var readings = await this.ParseFile(request);
 
             if (meterReadingResponse.Errors.Any())
             {
                 return meterReadingResponse;
             }
 
-
+            await this.meterReadingRepository.AddMeterReadings(readings);
             return meterReadingResponse;
         }
 
