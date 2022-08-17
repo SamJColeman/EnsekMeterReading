@@ -27,6 +27,7 @@ namespace EnsekMeterReading.Services
             }
 
             await this.meterReadingRepository.AddMeterReadings(readings);
+            meterReadingResponse.ReadingsAddedSuccessfully = readings.Count;
             return meterReadingResponse;
         }
 
@@ -57,7 +58,7 @@ namespace EnsekMeterReading.Services
                         {
                             AccountId = int.Parse(meterReadingEntry[0]),
                             MeterReadingDateTime = DateTime.ParseExact(meterReadingEntry[1], "d/M/yyyy HH:mm", CultureInfo.CurrentCulture),
-                            MeterReadValue = long.Parse(meterReadingEntry[2]),
+                            MeterReadValue = int.Parse(meterReadingEntry[2]),
                         });
                     }
                 }
@@ -73,25 +74,33 @@ namespace EnsekMeterReading.Services
                 return false;
             }
 
+            if (!DateTime.TryParseExact(meterReadingEntry[1], "d/M/yyyy HH:mm", CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal, out var dateTime))
+            {
+                this.meterReadingResponse.Errors.Add($"Failed to convert meter reading date for account id {meterReadingEntry[0]}. Value provided was {meterReadingEntry[1]}");
+                return false;
+            }
+
+            if (!int.TryParse(meterReadingEntry[2], out var meterRedingValue))
+            {
+                this.meterReadingResponse.Errors.Add($"Failed to convert meter reading value for account id {meterReadingEntry[0]}. Value provided was {meterReadingEntry[2]}");
+                return false;
+            }
+
+            if (meterRedingValue <= 0 || meterRedingValue > 99999)
+            {
+                this.meterReadingResponse.Errors.Add($"Meter reading value for account id {meterReadingEntry[0]} was out of range. Value provided was {meterReadingEntry[2]}");
+                return false;
+            }
+
             if (!await this.meterReadingRepository.AccountExists(accountId))
             {
                 this.meterReadingResponse.Errors.Add($"Failed to find account id {meterReadingEntry[0]}");
                 return false;
             }
 
-            if (!DateTime.TryParseExact(meterReadingEntry[1], "d/M/yyyy HH:mm", CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal, out var dateTime)) {
-                this.meterReadingResponse.Errors.Add($"Failed to convert meter reading date for account id {meterReadingEntry[0]}. Value provided was {meterReadingEntry[1]}");
-                return false;
-            }
-
             if (await this.meterReadingRepository.MeterReadingExists(accountId, dateTime))
             {
                 this.meterReadingResponse.Errors.Add($"Meter for account id {accountId} has already been provided for {dateTime}");
-                return false;
-            }
-
-            if (!long.TryParse(meterReadingEntry[2], out var meterRedingValue)) {
-                this.meterReadingResponse.Errors.Add($"Failed to convert meter reading value for account id {meterReadingEntry[0]}. Value provided was {meterReadingEntry[2]}");
                 return false;
             }
 
