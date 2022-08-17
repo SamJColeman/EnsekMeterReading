@@ -14,12 +14,16 @@ namespace EnsekMeterReading.Data
                 accountRows.Skip(1).ToList().ForEach(r =>
                 {
                     var values = r.Split(",");
-                    context.Accounts.Add(new Account
+                    var account = new Account
                     {
                         AccountId = int.Parse(values[0]),
                         FirstName = values[1],
                         LastName = values[2]
-                    });
+                    };
+                    if (!context.Accounts.Contains(account))
+                    {
+                        context.Accounts.Add(account);
+                    }
                 });
                 context.SaveChanges();
             }
