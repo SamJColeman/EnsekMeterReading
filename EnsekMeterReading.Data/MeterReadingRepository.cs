@@ -19,14 +19,14 @@ namespace EnsekMeterReading.Data
             await this.context.SaveChangesAsync();
         }
 
-        public async Task<Account?> GetAccount(int accountId)
+        public async Task<bool> AccountExists(int accountId)
         {
-            return await this.context.Accounts.FirstOrDefaultAsync(a => a.AccountId == accountId);
+            return await this.context.Accounts.AnyAsync(a => a.AccountId == accountId);
         }
 
-        public async Task<MeterReading?> GetMeterReading(int accountId, DateTime meterReadingDateTime)
+        public async Task<bool> MeterReadingExists(int accountId, DateTime meterReadingDateTime)
         {
-            return await this.context.MeterReadings.FirstOrDefaultAsync(r => r.AccountId == accountId && r.MeterReadingDateTime == meterReadingDateTime);
+            return await this.context.MeterReadings.AnyAsync(r => r.AccountId == accountId && r.MeterReadingDateTime == meterReadingDateTime);
         }
     }
 }

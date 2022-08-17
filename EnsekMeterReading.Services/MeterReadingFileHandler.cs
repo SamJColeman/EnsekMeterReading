@@ -19,7 +19,7 @@ namespace EnsekMeterReading.Services
 
         public async Task<MeterReadingResponse> Handle(MeterReadingFileRequest request, CancellationToken cancellationToken)
         {
-            this.ParseFile(request);
+            await this.ParseFile(request);
 
             if (meterReadingResponse.Errors.Any())
             {
@@ -30,7 +30,7 @@ namespace EnsekMeterReading.Services
             return meterReadingResponse;
         }
 
-        private List<MeterReading> ParseFile(MeterReadingFileRequest request)
+        private async Task<List<MeterReading>> ParseFile(MeterReadingFileRequest request)
         {
             var meterReadings = new List<MeterReading>();
             using (var stream = new StreamReader(request.MeterReadingFile.OpenReadStream()))
@@ -51,7 +51,7 @@ namespace EnsekMeterReading.Services
                 while (stream.Peek() >= 0)
                 {
                     var meterReadingEntry = stream.ReadLine().Split(",");
-                    if (this.validateEntry(meterReadingEntry))
+                    if (await this.validateEntry(meterReadingEntry))
                     {
                         meterReadings.Add(new MeterReading
                         {
@@ -66,15 +66,27 @@ namespace EnsekMeterReading.Services
             return meterReadings;
         }
 
-        private bool validateEntry(string[] meterReadingEntry)
+        private async Task<bool> validateEntry(string[] meterReadingEntry)
         {
             if (!int.TryParse(meterReadingEntry[0], out var accountId)) {
                 this.meterReadingResponse.Errors.Add($"Failed to convert account id {meterReadingEntry[0]}");
                 return false;
             }
 
+            if (!await this.meterReadingRepository.AccountExists(accountId))
+            {
+                this.meterReadingResponse.Errors.Add($"Failed to find account id {meterReadingEntry[0]}");
+                return false;
+            }
+
             if (!DateTime.TryParseExact(meterReadingEntry[1], "d/M/yyyy HH:mm", CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal, out var dateTime)) {
                 this.meterReadingResponse.Errors.Add($"Failed to convert meter reading date for account id {meterReadingEntry[0]}. Value provided was {meterReadingEntry[1]}");
+                return false;
+            }
+
+            if (await this.meterReadingRepository.MeterReadingExists(accountId, dateTime))
+            {
+                this.meterReadingResponse.Errors.Add($"Meter for account id {accountId} has already been provided for {dateTime}");
                 return false;
             }
 

@@ -20,9 +20,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<MeterReadingContext>(options => options.UseSqlite(new SqliteConnection("DataSource=MySharedInMemoryDb;mode=memory;cache=shared")));
+builder.Services.AddDbContext<MeterReadingContext>(options => options.UseSqlite(new SqliteConnection("DataSource=file::memory:?cache=shared")));
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<MeterReadingContext>();
+    dbContext.Database.EnsureCreated();
+    SeedDatabase.Initialize(dbContext);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

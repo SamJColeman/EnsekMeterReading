@@ -19,7 +19,7 @@ namespace EnsekMeterReading.Controllers
         }
 
         [HttpPost]
-        public async Task UploadMeterReadings(IFormFile file)
+        public async Task<MeterReadingResponse> UploadMeterReadings(IFormFile file)
         {
             if (file.ContentType != "text/csv" || !file.FileName.EndsWith(".csv"))
             {
@@ -27,7 +27,7 @@ namespace EnsekMeterReading.Controllers
             }
 
             var request = new MeterReadingFileRequest { MeterReadingFile = file };
-            await this.mediator.Send(request);
+            return await this.mediator.Send(request);
         }
     }
 }

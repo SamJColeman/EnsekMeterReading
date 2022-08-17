@@ -10,12 +10,6 @@ namespace EnsekMeterReading.Data
         {
         }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-            new SeedDatabase(modelBuilder).Initialize();
-        }
-
         public DbSet<Account> Accounts { get; set; }
 
         public DbSet<MeterReading> MeterReadings { get; set; }
